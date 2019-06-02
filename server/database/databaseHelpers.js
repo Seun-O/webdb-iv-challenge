@@ -10,11 +10,12 @@ const config = {
 
 const db = knex(config);
 
-const getDishes = id => {
+const getDish = id => {
   if (id) {
-    return db("dishes")
-      .first()
-      .where({ id });
+    return db("dishes as d")
+      .leftJoin("recipes as r", "d.id", "r.dish")
+      .where({ "r.dish": id })
+      .select("r.id", "d.name as Dish", "r.name as Recipe");
   }
   return db("dishes");
 };
@@ -24,17 +25,29 @@ const addDish = dish => {
 };
 
 const getRecipes = () => {
-  return db("dishes_recipes");
+  return db("recipes as r")
+    .join("dishes as d", "r.dish", "d.id")
+    .select("r.id", "r.name as Recipe", "d.name as Dish");
 };
 
-async function execute() {
-  try {
-    // const dishes = await addDish({ name: "Eggs" });
-    const dishes = await getRecipes();
-    console.log(dishes);
-  } catch (err) {
-    console.log(err);
-  }
-}
+const addRecipes = (rec, ins, dis) => {
+  return db("recipes").insert(rec, ins, dis);
+};
 
-execute();
+// Function to Test knex methods with database
+// async function execute() {
+//   try {
+//     const dishes = await getRecipes();
+//     console.log(dishes);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// }
+// execute()
+
+module.exports = {
+  getDish,
+  addDish,
+  getRecipes,
+  addRecipes
+};
